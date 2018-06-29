@@ -1,6 +1,7 @@
 package me.mvega.flicks;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -52,15 +53,27 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         holder.tvTitle.setText(movie.getTitle());
         holder.tvOverview.setText(movie.getOverview());
 
-        String imageUrl = config.getImageUrl(config.getPosterSize(), movie.getPosterPath());
+        boolean isPortrait = context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
+
+        String imageUrl = null;
+
+        if (isPortrait) {
+            imageUrl = config.getImageUrl(config.getPosterSize(), movie.getPosterPath());
+        } else {
+            imageUrl = config.getImageUrl(config.getBackdropSize(), movie.getBackdropPath());
+        }
+
+        int placeholderId = isPortrait ? R.drawable.flicks_movie_placeholder : R.drawable.flicks_backdrop_placeholder;
+        ImageView imageView = isPortrait ? holder.ivPosterImage : holder.ivBackdropImage;
 
         Glide.with(context)
                 .load(imageUrl)
-                .apply(RequestOptions.placeholderOf(R.drawable.flicks_movie_placeholder)
-                        .error(R.drawable.flicks_movie_placeholder)
+                .apply(RequestOptions.placeholderOf(placeholderId)
+                        .error(placeholderId)
                         .fitCenter()
-                        .transform(new RoundedCornersTransformation(15, 0)))
-                .into(holder.ivPosterImage);
+                        .transform(new RoundedCornersTransformation(15, 0))
+                )
+                .into(imageView);
     }
 
     @Override
@@ -68,15 +81,17 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         return movies.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder{
+    public static class ViewHolder extends RecyclerView.ViewHolder {
 
         ImageView ivPosterImage;
+        ImageView ivBackdropImage;
         TextView tvTitle;
         TextView tvOverview;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivPosterImage = (ImageView) itemView.findViewById(R.id.ivPosterImage);
+            ivBackdropImage = (ImageView) itemView.findViewById(R.id.ivBackdropImage);
             tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
             tvOverview = (TextView) itemView.findViewById(R.id.tvOverview);
         }
